@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.image("favicon.png", width=120)
+st.image("./favicon.png", width=120)
 st.title("🎧 Wantumeni Post Generator")
 
 # File paths

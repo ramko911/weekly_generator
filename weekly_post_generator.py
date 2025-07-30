@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.image("logo.svg", width=120)
+st.image("favicon.png", width=120)
 st.title("🎧 Wantumeni Post Generator")
 
 # File paths
@@ -24,7 +24,7 @@ def delete_row(df, index):
 def generate_hashtags(title, artist, sample):
     base = ["#boombap", "#hiphopinstrumental", "#beatmaker"]
     artist_tag = f"#{re.sub(r'[^a-zA-Z0-9]', '', artist.replace(' ', '').lower())}" if artist else ""
-    sample_tag = f"#{re.sub(r'\\s+', '', sample.lower())}" if sample else ""
+    sample_tag = f"#{re.sub(r'\s+', '', sample.lower())}" if sample else ""
     extra = ["#sampling", "#vinyl", "#soulful", "#typebeat"]
     return base + [artist_tag, sample_tag] + extra
 

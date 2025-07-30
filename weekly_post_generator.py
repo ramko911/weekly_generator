@@ -1,10 +1,16 @@
 import streamlit as st
 from datetime import date
 import re
+import pandas as pd
+import os
 
 st.set_page_config(page_title="Wantumeni Weekly Post Generator", layout="centered")
 st.title("🎧 Wantumeni Post Generator")
 st.markdown("Generate weekly post descriptions for all platforms.")
+
+# Files to store history
+HISTORY_FILE = "post_history.csv"
+ANALYTICS_FILE = "analytics.csv"
 
 # Input fields
 track_title = st.text_input("Track Title")
@@ -139,3 +145,78 @@ Now available:
 
     st.subheader("📎 All Tags (Copy/Paste)")
     st.code(display_tags if isinstance(display_tags, str) else " ".join(display_tags))
+
+    # Save history
+    history_data = {
+        "Date": date.today().isoformat(),
+        "Title": track_title,
+        "Sample Artist": sample_artist,
+        "Sample Track": sample_title,
+        "Sample Year": sample_year,
+        "Tags": display_tags,
+        "YouTube URL": youtube_url,
+        "SoundCloud URL": soundcloud_url
+    }
+    df_new = pd.DataFrame([history_data])
+
+    if os.path.exists(HISTORY_FILE):
+        df_old = pd.read_csv(HISTORY_FILE)
+        df_all = pd.concat([df_old, df_new], ignore_index=True)
+    else:
+        df_all = df_new
+
+    df_all.to_csv(HISTORY_FILE, index=False)
+    st.success("✅ Post saved to history.")
+
+# Load history view
+st.markdown("---")
+st.subheader("📜 Post History")
+if os.path.exists(HISTORY_FILE):
+    df_history = pd.read_csv(HISTORY_FILE)
+    st.dataframe(df_history)
+else:
+    st.info("No post history saved yet.")
+
+# Analytics Dashboard
+st.markdown("---")
+st.subheader("📊 Analytics Tracker")
+with st.form("analytics_form"):
+    a_date = st.date_input("Date", value=date.today())
+    a_platform = st.selectbox("Platform", ["Instagram", "TikTok", "YouTube", "Facebook", "Other"])
+    a_title = st.text_input("Associated Track Title (optional)")
+    a_reach = st.text_input("Reach / Views")
+    a_likes = st.text_input("Likes")
+    a_saves = st.text_input("Saves")
+    a_comments = st.text_input("Comments")
+    a_clicks = st.text_input("Link Clicks (optional)")
+    submitted = st.form_submit_button("Save Analytics Entry")
+
+    if submitted:
+        a_data = {
+            "Date": a_date,
+            "Platform": a_platform,
+            "Track Title": a_title,
+            "Reach": a_reach,
+            "Likes": a_likes,
+            "Saves": a_saves,
+            "Comments": a_comments,
+            "Clicks": a_clicks
+        }
+        df_analytics_new = pd.DataFrame([a_data])
+
+        if os.path.exists(ANALYTICS_FILE):
+            df_analytics_old = pd.read_csv(ANALYTICS_FILE)
+            df_analytics_all = pd.concat([df_analytics_old, df_analytics_new], ignore_index=True)
+        else:
+            df_analytics_all = df_analytics_new
+
+        df_analytics_all.to_csv(ANALYTICS_FILE, index=False)
+        st.success("✅ Analytics entry saved.")
+
+# Show analytics table
+if os.path.exists(ANALYTICS_FILE):
+    st.subheader("📈 Analytics Dashboard")
+    df_stats = pd.read_csv(ANALYTICS_FILE)
+    st.dataframe(df_stats)
+else:
+    st.info("No analytics data yet. Use the form above to log performance.")

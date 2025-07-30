@@ -12,6 +12,10 @@ st.markdown("Generate weekly post descriptions for all platforms.")
 HISTORY_FILE = "post_history.csv"
 ANALYTICS_FILE = "analytics.csv"
 
+# Helper to delete rows
+def delete_row(df, index):
+    return df.drop(index=index).reset_index(drop=True)
+
 # Input fields
 track_title = st.text_input("Track Title")
 sample_artist = st.text_input("Sample Artist")
@@ -58,94 +62,6 @@ else:
 linktree = "https://linktr.ee/wantumeni"
 
 if st.button("Generate Posts"):
-    # Sunday Meta / TikTok / Shorts
-    sunday_meta = f"""
-🎧 Boom Bap Hip Hop Instrumental – “{track_title}” by wantumeni  
-[unmastered demo]
-
-Sample:  
-{sample_artist} – {sample_title} ({sample_year})
-
-🔁 Weekly drops – Every Sunday  
-🎹 {display_tags}  
-📀 M.I.L.E. Music  
-
-👉 Stream now via Linktree  
-🔗 {linktree}
-"""
-
-    # Sunday YouTube
-    sunday_youtube = f"""
-🎧 wantumeni – “{track_title}” | Boom Bap Hip Hop Instrumental  
-[unmastered demo]
-
-Sample:  
-{sample_artist} – {sample_title} ({sample_year})
-
-🔁 Weekly beat drops – Sundays  
-🎹 Raw boom bap / soulful samples / gritty drums  
-📀 M.I.L.E. Music  
-
-🔊 Stream & download:  
-Linktree: {linktree}  
-Instagram: https://instagram.com/wantumeni.x  
-Soundcloud: https://soundcloud.com/wantumeni  
-TikTok: https://tiktok.com/@wantumeni
-
-{display_tags}
-"""
-
-    # Wednesday Meta / TikTok
-    wednesday_meta = f"""
-🎧 Missed it? “{track_title}” by wantumeni just dropped  
-[unmastered demo] – Boom Bap Instrumental  
-
-Sampled from:  
-{sample_artist} – {sample_title} ({sample_year})
-
-Now streaming on Soundcloud & YouTube  
-🔗 {linktree}  
-
-🔁 Weekly beat drops  
-🎹 {display_tags}  
-📀 M.I.L.E. Music
-"""
-
-    # Wednesday YouTube
-    wednesday_youtube = f"""
-🎧 New drop: “{track_title}” by wantumeni [unmastered demo]  
-Boom Bap Hip Hop Instrumental  
-
-Sampled from:  
-{sample_artist} – {sample_title} ({sample_year})
-
-Now available:  
-🔗 YouTube: {youtube_url or '[URL]'}  
-🔗 Soundcloud: {soundcloud_url or '[URL]'}  
-🔗 All links: {linktree}  
-
-🔁 Weekly beat drops  
-🎹 Jazzy loops / gritty drums / classic vibe  
-📀 M.I.L.E. Music  
-
-{display_tags}
-"""
-
-    st.subheader("Sunday - Meta / TikTok / Shorts")
-    st.code(sunday_meta, language='markdown')
-
-    st.subheader("Sunday - YouTube")
-    st.code(sunday_youtube, language='markdown')
-
-    st.subheader("Wednesday - Meta / TikTok")
-    st.code(wednesday_meta, language='markdown')
-
-    st.subheader("Wednesday - YouTube")
-    st.code(wednesday_youtube, language='markdown')
-
-    st.subheader("📎 All Tags (Copy/Paste)")
-    st.code(display_tags if isinstance(display_tags, str) else " ".join(display_tags))
-
     # Save history
     history_data = {
         "Date": date.today().isoformat(),
@@ -168,12 +84,18 @@ Now available:
     df_all.to_csv(HISTORY_FILE, index=False)
     st.success("✅ Post saved to history.")
 
-# Load history view
+# Load and edit history view
 st.markdown("---")
 st.subheader("📜 Post History")
 if os.path.exists(HISTORY_FILE):
     df_history = pd.read_csv(HISTORY_FILE)
     st.dataframe(df_history)
+    selected_row = st.number_input("Select row to delete (by index)", min_value=0, max_value=len(df_history)-1, step=1)
+    if st.button("Delete Selected Row"):
+        df_history = delete_row(df_history, selected_row)
+        df_history.to_csv(HISTORY_FILE, index=False)
+        st.success("✅ Row deleted.")
+        st.experimental_rerun()
 else:
     st.info("No post history saved yet.")
 
@@ -182,9 +104,9 @@ st.markdown("---")
 st.subheader("📊 Analytics Tracker")
 with st.form("analytics_form"):
     a_date = st.date_input("Date", value=date.today())
-    a_platform = st.selectbox("Platform", ["Instagram", "TikTok", "YouTube", "Facebook", "Other"])
+    a_platform = st.selectbox("Platform", ["Instagram", "TikTok", "YouTube", "Facebook", "SoundCloud", "Other"])
     a_title = st.text_input("Associated Track Title (optional)")
-    a_reach = st.text_input("Reach / Views")
+    a_reach = st.text_input("Reach / Plays / Views")
     a_likes = st.text_input("Likes")
     a_saves = st.text_input("Saves")
     a_comments = st.text_input("Comments")
@@ -213,10 +135,16 @@ with st.form("analytics_form"):
         df_analytics_all.to_csv(ANALYTICS_FILE, index=False)
         st.success("✅ Analytics entry saved.")
 
-# Show analytics table
+# Show analytics table and delete
 if os.path.exists(ANALYTICS_FILE):
     st.subheader("📈 Analytics Dashboard")
     df_stats = pd.read_csv(ANALYTICS_FILE)
     st.dataframe(df_stats)
+    selected_a_row = st.number_input("Select analytics row to delete (by index)", min_value=0, max_value=len(df_stats)-1, step=1)
+    if st.button("Delete Selected Analytics Row"):
+        df_stats = delete_row(df_stats, selected_a_row)
+        df_stats.to_csv(ANALYTICS_FILE, index=False)
+        st.success("✅ Analytics row deleted.")
+        st.experimental_rerun()
 else:
     st.info("No analytics data yet. Use the form above to log performance.")

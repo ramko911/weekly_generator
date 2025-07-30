@@ -47,7 +47,50 @@ with tabs[0]:
 
 with tabs[1]:
     st.header("Post Description Generator")
-    st.markdown("Form goes here to generate platform descriptions.")
+
+    title = st.text_input("Track Title")
+    artist = st.text_input("Sample Artist")
+    sample = st.text_input("Sample Title")
+    year = st.text_input("Sample Year")
+    youtube = st.text_input("YouTube URL")
+    soundcloud = st.text_input("SoundCloud URL")
+    linktree = st.text_input("Linktree URL", value="https://linktr.ee/wantumeni")
+
+    format_style = st.radio("Hashtag Format", ["With #", "Without #", "Comma-separated"])
+
+    hashtags = generate_platform_tags(title, artist, sample)["Instagram"]  # default tag set
+    if format_style == "Without #":
+        hashtags = [tag.replace('#', '') for tag in hashtags]
+    elif format_style == "Comma-separated":
+        hashtags = ", ".join([tag.replace('#', '') for tag in hashtags])
+    else:
+        hashtags = " ".join(hashtags)
+
+    if st.button("Generate Preview"):
+        st.subheader("Post Preview")
+        st.markdown(f"**🎧 {title}** by wantumeni  ")
+        st.markdown(f"Sample: {artist} – {sample} ({year})  ")
+        st.markdown(f"🔁 Weekly drop  ")
+        st.markdown(f"🎹 {hashtags}  ")
+        st.markdown(f"🔗 [YouTube]({youtube}) | [SoundCloud]({soundcloud}) | [Linktree]({linktree})")
+
+        post_data = {
+            "Date": date.today().isoformat(),
+            "Track Title": title,
+            "Sample Artist": artist,
+            "Sample Track": sample,
+            "Sample Year": year,
+            "YouTube": youtube,
+            "SoundCloud": soundcloud,
+            "Tags": hashtags
+        }
+        if os.path.exists(HISTORY_FILE):
+            df = pd.read_csv(HISTORY_FILE)
+            df = pd.concat([df, pd.DataFrame([post_data])], ignore_index=True)
+        else:
+            df = pd.DataFrame([post_data])
+        df.to_csv(HISTORY_FILE, index=False)
+        st.success("✅ Post saved to history.")
 
 with tabs[2]:
     st.header("Post History")
@@ -67,11 +110,11 @@ with tabs[3]:
 
 with tabs[4]:
     st.header("AI Descriptions")
-    title = st.text_input("Track Title")
-    artist = st.text_input("Sample Artist")
-    sample = st.text_input("Sample Title")
+    title = st.text_input("Track Title (AI)", key="ai_title")
+    artist = st.text_input("Sample Artist (AI)", key="ai_artist")
+    sample = st.text_input("Sample Title (AI)", key="ai_sample")
 
-    if st.button("Generate Descriptions"):
+    if st.button("Generate AI Descriptions"):
         tags = generate_platform_tags(title, artist, sample)
 
         st.subheader("Generated Hashtags")

@@ -20,12 +20,23 @@ ANALYTICS_FILE = "analytics.csv"
 def delete_row(df, index):
     return df.drop(index=index).reset_index(drop=True)
 
-def generate_hashtags(title, artist, sample):
+def clean_tag(text):
+    return f"#{re.sub(r'[^a-zA-Z0-9]', '', text.replace(' ', '').lower())}" if text else ""
+
+def generate_platform_tags(title, artist, sample):
+    artist_tag = clean_tag(artist)
+    sample_tag = clean_tag(sample)
+
     base = ["#boombap", "#hiphopinstrumental", "#beatmaker"]
-    artist_tag = f"#{re.sub(r'[^a-zA-Z0-9]', '', artist.replace(' ', '').lower())}" if artist else ""
-    sample_tag = f"#{re.sub(r'\\s+', '', sample.lower())}" if sample else ""
     extra = ["#sampling", "#vinyl", "#soulful", "#typebeat"]
-    return base + [artist_tag, sample_tag] + extra
+
+    return {
+        "Instagram": base + [artist_tag, sample_tag] + ["#visuals", "#hiphopbeats"],
+        "TikTok": base + [artist_tag, sample_tag] + ["#viralbeat", "#freestyle"],
+        "YouTube": base + [artist_tag, sample_tag] + ["#instrumental", "#boombapbeats"],
+        "Facebook": base + [artist_tag, sample_tag] + ["#musicproducer", "#beatdrop"],
+        "Shorts": base + [artist_tag, sample_tag] + ["#shorts", "#musicshorts"]
+    }
 
 # Tab Navigation
 tabs = st.tabs(["🏠 Home", "📄 Description", "📜 History", "📊 Analytics", "🪄 AI Descriptions"])
@@ -61,10 +72,15 @@ with tabs[4]:
     sample = st.text_input("Sample Title")
 
     if st.button("Generate Descriptions"):
-        hashtags = generate_hashtags(title, artist, sample)
+        tags = generate_platform_tags(title, artist, sample)
+
         st.subheader("Generated Hashtags")
-        st.write(" ".join([tag for tag in hashtags if tag]))
+        for platform, taglist in tags.items():
+            st.markdown(f"**{platform}:** {' '.join([tag for tag in taglist if tag])}")
+
         st.subheader("Generated Descriptions")
-        st.write(f"Instagram: New drop \"{title}\" sampling {sample} by {artist}! {' '.join(hashtags)}")
-        st.write(f"YouTube Shorts: {title} flip out now! Beat inspired by {sample}. {' '.join(hashtags)}")
-        st.write(f"TikTok: Cooking {title} with some {sample} vibes 🔥 {' '.join(hashtags)}")
+        st.write(f"Instagram: New drop \"{title}\" sampling {sample} by {artist}! {' '.join(tags['Instagram'])}")
+        st.write(f"YouTube Shorts: {title} flip out now! Beat inspired by {sample}. {' '.join(tags['Shorts'])}")
+        st.write(f"TikTok: Cooking {title} with some {sample} vibes 🔥 {' '.join(tags['TikTok'])}")
+        st.write(f"Facebook: \"{title}\" — soulful boom bap drop using {sample}. {' '.join(tags['Facebook'])}")
+        st.write(f"YouTube: \"{title}\" by wantumeni | Sampled {artist} – {sample}. {' '.join(tags['YouTube'])}")

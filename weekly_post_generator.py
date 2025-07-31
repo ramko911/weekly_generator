@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🎿 Wantumeni Post Generator")
+st.title("🎧 Wantumeni Post Generator")
 
 # File paths
 HISTORY_FILE = "post_history.csv"

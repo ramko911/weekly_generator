@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🎧 Wantumeni Post Generator")
+st.title("🎿 Wantumeni Post Generator")
 
 # File paths
 HISTORY_FILE = "post_history.csv"
@@ -70,8 +70,8 @@ with tabs[1]:
         st.subheader("Post Preview")
         st.markdown(f"**🎧 {title}** by wantumeni  ")
         st.markdown(f"Sample: {artist} – {sample} ({year})  ")
-        st.markdown(f"🔁 Weekly drop  ")
-        st.markdown(f"🎹 {hashtags}  ")
+        st.markdown(f"🖁 Weekly drop  ")
+        st.markdown(f"🎺 {hashtags}  ")
         st.markdown(f"🔗 [YouTube]({youtube}) | [SoundCloud]({soundcloud}) | [Linktree]({linktree})")
 
         post_data = {
@@ -102,6 +102,41 @@ with tabs[2]:
 
 with tabs[3]:
     st.header("Analytics Dashboard")
+
+    st.subheader("Enter Platform Stats")
+    col1, col2, col3 = st.columns(3)
+    platforms = ["Instagram", "TikTok", "YouTube", "Facebook", "Shorts", "SoundCloud"]
+    stats = {}
+
+    for i, platform in enumerate(platforms):
+        with [col1, col2, col3][i % 3]:
+            st.markdown(f"**{platform}**")
+            views = st.number_input(f"Views ({platform})", min_value=0, key=f"views_{platform}")
+            likes = st.number_input(f"Likes ({platform})", min_value=0, key=f"likes_{platform}")
+            shares = st.number_input(f"Shares ({platform})", min_value=0, key=f"shares_{platform}")
+            comments = st.number_input(f"Comments ({platform})", min_value=0, key=f"comments_{platform}")
+            stats[platform] = {"Views": views, "Likes": likes, "Shares": shares, "Comments": comments}
+
+    if st.button("Save All Stats"):
+        records = []
+        today = date.today().isoformat()
+        for platform, data in stats.items():
+            records.append({
+                "Date": today,
+                "Track Title": "",  # You can optionally link to a title
+                "Platform": platform,
+                **data
+            })
+        df_new = pd.DataFrame(records)
+        if os.path.exists(ANALYTICS_FILE):
+            df_existing = pd.read_csv(ANALYTICS_FILE)
+            df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+        else:
+            df_combined = df_new
+        df_combined.to_csv(ANALYTICS_FILE, index=False)
+        st.success("Analytics saved.")
+
+    st.subheader("View Analytics")
     try:
         df_analytics = pd.read_csv(ANALYTICS_FILE)
         st.dataframe(df_analytics)
